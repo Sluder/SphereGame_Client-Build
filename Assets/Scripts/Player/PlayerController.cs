@@ -72,8 +72,8 @@ public class PlayerController : MonoBehaviour {
 
         // Check player speed
         if (player.velocity.magnitude > maxRollSpeed) {
-			player.velocity = player.velocity.normalized * maxRollSpeed;
-		}
-	}
+            player.velocity = player.velocity.normalized * maxRollSpeed;
+        }
+    }
 
 }
