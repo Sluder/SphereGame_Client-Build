@@ -2,78 +2,98 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.Networking;
 
-public class PlayerController : MonoBehaviour {
+public class PlayerController : MonoBehaviour
+{
+
+	public Camera playerCamera;
+	public double maxRollSpeed = 30;
+	public float jumpHeight = 25;
 
 	private Rigidbody player;
-	public Camera playerCamera;
+	private bool upBtn, downBtn, leftBtn, rightBtn, jumpBtn, isGrounded;
 
-	public float maxRollSpeed;
-	public float jumpHeight;
-
-	private bool up, down, left, right, jump;
-
-	void Start() {
+	void Start()
+	{
 		player = this.GetComponent<Rigidbody>();
 	}
 		
-	void Update () {
+	void Update()
+	{
 		player.transform.forward = (playerCamera.transform.forward - player.transform.position);
 
+		// Get key press, update position in physics loop (FixedUpdate)
 		if (Input.GetKey (KeyCode.W)) {
-			up = true;
+			upBtn = true;
 		} else {
-			up = false;
+			upBtn = false;
 		}
 		if (Input.GetKey (KeyCode.S)) {
-			down = true;
+			downBtn = true;
 		} else {
-			down = false;
+			downBtn = false;
 		}
 		if (Input.GetKey (KeyCode.D)) {
-			right = true;
+			rightBtn = true;
 		} else {
-			right = false;
+			rightBtn = false;
 		}
 		if (Input.GetKey (KeyCode.A)) {
-			left = true;
+			leftBtn = true;
 		} else {
-			left = false;
+			leftBtn = false;
 		}
 		if (Input.GetKey (KeyCode.Space)) {
-			jump = true;
+			jumpBtn = true;
 		} else {
-			jump = false;
+			jumpBtn = false;
 		}
 	}
 
-	void FixedUpdate () {
-
+	void FixedUpdate() 
+	{
 		// Move player relative to PlayerCamera's view
-		if (up) {
+		if (upBtn) {
 			var forwardDir = playerCamera.transform.TransformDirection (Vector3.forward);
-			player.AddForce (forwardDir * maxRollSpeed);
+			player.AddForce (forwardDir * (float) maxRollSpeed);
 		}
-		if (down) {
+		if (downBtn) {
 			var backDir = playerCamera.transform.TransformDirection (Vector3.back);
-			player.AddForce (backDir * maxRollSpeed);
+			player.AddForce (backDir * (float) maxRollSpeed);
 		}
-		if (left) {
+		if (leftBtn) {
 			var leftDir = playerCamera.transform.TransformDirection (Vector3.left);
-			player.AddForce (leftDir * maxRollSpeed);
+			player.AddForce (leftDir * (float) maxRollSpeed);
 		}
-		if (right) {
+		if (rightBtn) {
 			var rightDir = playerCamera.transform.TransformDirection (Vector3.right);
-			player.AddForce (rightDir * maxRollSpeed);
+			player.AddForce (rightDir * (float) maxRollSpeed);
 		}
-		if (jump) {
+		if (jumpBtn && isGrounded) {
 			player.AddForce(new Vector3(0, jumpHeight, 0), ForceMode.Impulse);
-			maxRollSpeed /= 3;
+
+			isGrounded = false;
 		}
 
-        // Check player speed
-        if (player.velocity.magnitude > maxRollSpeed) {
-            player.velocity = player.velocity.normalized * maxRollSpeed;
+        // Top out player speed
+		if (player.velocity.magnitude > maxRollSpeed) {
+			player.velocity = player.velocity.normalized * (float) maxRollSpeed;
         }
     }
+
+	void OnCollisionEnter(Collision coll)
+	{
+		if (coll.gameObject.tag == "Walkable" && !isGrounded) {
+			isGrounded = true;
+			maxRollSpeed *= 1.5;
+		}
+	}
+
+	void OnCollisionExit(Collision coll)
+	{
+		if (coll.gameObject.tag == "Walkable" && !isGrounded) {
+			isGrounded = false;
+			maxRollSpeed /= 1.5;
+		}
+	}
 
 }
